@@ -36,7 +36,7 @@ model_reduced.predict(...)
 ```
 
 So basically you need to insert 2 lines in your code to speed up operations. But note that it requires 
-some time to convert model.
+some time to convert model. You can see usage example in [test_bench.py](https://github.com/ZFTurbo/Keras-inference-time-optimizer/blob/master/test_bench.py)
 
 ## Comparison table
 
