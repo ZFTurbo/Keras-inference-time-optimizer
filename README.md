@@ -53,8 +53,8 @@ some time to convert model.
 | NasNetMobile | (224, 224, 3) | 751 | 563 | 5,326,716 | 5,272,599 | 46.05 | 31.76 | 728.96 | 1.10e-06 | 1.60e-09 |
 | NasNetLarge | (331, 331, 3) | 1021 | 761 | 88,949,818 | 88,658,596 | 445.58 | 328.16 | 1402.61 | 1.43e-07 | 5.88e-10 |
 | [ZF_UNET_224](https://github.com/ZFTurbo/ZF_UNET_224_Pretrained_Model) | (224, 224, 3) | 85 | 63 | 31,466,753 | 31,442,689 | 96.76 | 69.17 | 9.93 | 4.72e-05 | 7.54e-09 |
-| [DeepLabV3+](https://github.com/bonlime/keras-deeplab-v3-plus) (mobile) | (512, 512, 3) | 162 | 108 | 2,146,645 | 2,097,013 | 583.63 | 432.71 | 48.00 | 4.72e-05 |  |
-| [DeepLabV3+](https://github.com/bonlime/keras-deeplab-v3-plus) (xception) | (512, 512, 3) | 409 | 263 | 41,258,213 | 40,954,013 | 1000.36 | 699.24 | 333.1 | 8.63e-05 |  |
+| [DeepLabV3+](https://github.com/bonlime/keras-deeplab-v3-plus) (mobile) | (512, 512, 3) | 162 | 108 | 2,146,645 | 2,097,013 | 583.63 | 432.71 | 48.00 | 4.72e-05 | 1.00e-05 |
+| [DeepLabV3+](https://github.com/bonlime/keras-deeplab-v3-plus) (xception) | (512, 512, 3) | 409 | 263 | 41,258,213 | 40,954,013 | 1000.36 | 699.24 | 333.1 | 8.63e-05 | 5.22e-06 |
 
 Config: Single NVIDIA GTX 1080 8 GB. Timing obtained on Tensorflow backend
 
