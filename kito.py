@@ -241,12 +241,14 @@ def optimize_separableconv2d_batchnorm_block(m, initial_model, input_layers, con
 
 
 def reduce_keras_model(model, debug=False):
+    global DEBUG
     from keras.models import Model
 
     x = None
     input = None
     tmp_model = None
     skip_layers = []
+    DEBUG = debug
 
     for level_id in range(len(model.layers)):
         layer = model.layers[level_id]
