@@ -1,7 +1,7 @@
 # Keras inference time optimizer (KITO)
 
 This code takes on input trained Keras model and optimize layer structure and weights in such a way that model became 
-much faster, but works identically to initial model. It can be extremely useful in case you need to process large 
+much faster (~30%), but works identically to initial model. It can be extremely useful in case you need to process large 
 amount of images with trained model. Reduce operation was tested on all Keras models zoo. See 
 comparison table below.
  
