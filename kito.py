@@ -1,12 +1,18 @@
 # coding: utf-8
 __author__ = 'Roman Solovyev (ZFTurbo), IPPM RAS: https://github.com/ZFTurbo/'
 
-# Reduce neural net structure (Conv + BN -> Conv)
-# Also works:
-# DepthwiseConv2D + BN -> DepthwiseConv2D
-# SeparableConv2D + BN -> SeparableConv2D
-# Full description: https://github.com/ZFTurbo/Keras-inference-time-optimizer
+'''
+Reduce neural net structure (Conv + BN -> Conv)
+Also works:
+DepthwiseConv2D + BN -> DepthwiseConv2D
+SeparableConv2D + BN -> SeparableConv2D
 
+This code takes on input trained Keras model and optimize layer structure and weights in such a way
+that model became much faster (~30%), but works identically to initial model. It can be extremely
+useful in case you need to process large amount of images with trained model. Reduce operation was
+tested on all Keras models zoo. See comparison table and full description by link:
+https://github.com/ZFTurbo/Keras-inference-time-optimizer
+'''
 
 DEBUG = False
 import numpy as np
