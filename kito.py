@@ -5,6 +5,7 @@ __author__ = 'Roman Solovyev (ZFTurbo), IPPM RAS: https://github.com/ZFTurbo/'
 # Also works:
 # DepthwiseConv2D + BN -> DepthwiseConv2D
 # SeparableConv2D + BN -> SeparableConv2D
+# Full description: https://github.com/ZFTurbo/Keras-inference-time-optimizer
 
 
 DEBUG = False
