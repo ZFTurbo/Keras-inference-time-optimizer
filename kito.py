@@ -47,7 +47,10 @@ def get_output_layers_ids(model, layer):
         node_key = layer.name + '_ib-' + str(i)
         if node_key in model._container_nodes:
             outbound_layer_id = str(id(node.outbound_layer))
-            outbound_layers.append(res[outbound_layer_id])
+            if outbound_layer_id in res:
+                outbound_layers.append(res[outbound_layer_id])
+            else:
+                print('Warning, some problem with outbound node on layer {}!'.format(layer.name))
     return outbound_layers
 
 
@@ -276,11 +279,13 @@ def reduce_keras_model(model, debug=False):
             next_layer_type = next_layer.__class__.__name__
             if layer_type in ['Conv2D', 'DepthwiseConv2D'] and next_layer_type == 'BatchNormalization':
                 tmp_model = optimize_conv2d_batchnorm_block(tmp_model, model, input_layers, layer, next_layer)
+                x = tmp_model.layers[-1].output
                 skip_layers.append(output_layers[0])
                 continue
 
             if layer_type in ['SeparableConv2D'] and next_layer_type == 'BatchNormalization':
                 tmp_model = optimize_separableconv2d_batchnorm_block(tmp_model, model, input_layers, layer, next_layer)
+                x = tmp_model.layers[-1].output
                 skip_layers.append(output_layers[0])
                 continue
 
