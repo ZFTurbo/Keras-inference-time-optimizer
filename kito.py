@@ -28,7 +28,7 @@ def get_input_layers_ids(model, layer):
     layer_id = str(id(layer))
     for i, node in enumerate(layer._inbound_nodes):
         node_key = layer.name + '_ib-' + str(i)
-        if node_key in model._container_nodes:
+        if node_key in model._network_nodes:
             for inbound_layer in node.inbound_layers:
                 inbound_layer_id = str(id(inbound_layer))
                 inbound_layers.append(res[inbound_layer_id])
@@ -45,7 +45,7 @@ def get_output_layers_ids(model, layer):
     layer_id = str(id(layer))
     for i, node in enumerate(layer._outbound_nodes):
         node_key = layer.name + '_ib-' + str(i)
-        if node_key in model._container_nodes:
+        if node_key in model._network_nodes:
             outbound_layer_id = str(id(node.outbound_layer))
             if outbound_layer_id in res:
                 outbound_layers.append(res[outbound_layer_id])
@@ -55,7 +55,7 @@ def get_output_layers_ids(model, layer):
 
 
 def get_copy_of_layer(layer):
-    from keras.applications.mobilenet import relu6
+    from keras_applications.mobilenet import relu6
     from keras.layers.core import Activation
     from keras import layers
     config = layer.get_config()
