@@ -1,9 +1,7 @@
-# coding: utf-8
-__author__ = 'Roman Solovyev (ZFTurbo), IPPM RAS: https://github.com/ZFTurbo/'
-
-
-# Regression tests for KITO
-
+"""
+Regression tests for KITO
+Author: Roman Solovyev (ZFTurbo), IPPM RAS: https://github.com/ZFTurbo/
+"""
 
 from kito import *
 import time

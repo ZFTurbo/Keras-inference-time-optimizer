@@ -1,7 +1,4 @@
-# coding: utf-8
-__author__ = 'Roman Solovyev (ZFTurbo), IPPM RAS: https://github.com/ZFTurbo/'
-
-'''
+"""
 Reduce neural net structure (Conv + BN -> Conv)
 Also works:
 DepthwiseConv2D + BN -> DepthwiseConv2D
@@ -12,7 +9,12 @@ that model became much faster (~30%), but works identically to initial model. It
 useful in case you need to process large amount of images with trained model. Reduce operation was
 tested on all Keras models zoo. See comparison table and full description by link:
 https://github.com/ZFTurbo/Keras-inference-time-optimizer
-'''
+Author: Roman Solovyev (ZFTurbo)
+"""
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import numpy as np
 
@@ -23,7 +25,7 @@ def get_keras_sub_version():
     return type
 
 
-def get_input_layers_ids(model, layer, verbose):
+def get_input_layers_ids(model, layer, verbose=False):
     res = dict()
     for i, l in enumerate(model.layers):
         layer_id = str(id(l))
@@ -44,7 +46,7 @@ def get_input_layers_ids(model, layer, verbose):
     return inbound_layers
 
 
-def get_output_layers_ids(model, layer, verbose):
+def get_output_layers_ids(model, layer, verbose=False):
     res = dict()
     for i, l in enumerate(model.layers):
         layer_id = str(id(l))
@@ -67,7 +69,7 @@ def get_output_layers_ids(model, layer, verbose):
     return outbound_layers
 
 
-def get_copy_of_layer(layer, verbose):
+def get_copy_of_layer(layer, verbose=False):
     if get_keras_sub_version() == 1:
         from keras.applications.mobilenet import relu6
     else:
@@ -93,7 +95,7 @@ def get_copy_of_layer(layer, verbose):
     return layer_copy
 
 
-def get_layers_without_output(model, verbose):
+def get_layers_without_output(model, verbose=False):
     output_tensor = []
     output_names = []
     for level_id in range(len(model.layers)):
@@ -106,48 +108,7 @@ def get_layers_without_output(model, verbose):
     return output_tensor, output_names
 
 
-def copy_keras_model_low_level(model, verbose):
-    from keras.models import Model
-
-    x = None
-    input = None
-    tmp_model = None
-    for level_id in range(len(model.layers)):
-        layer = model.layers[level_id]
-        layer_type = layer.__class__.__name__
-        input_layers = get_input_layers_ids(model, layer, verbose)
-        output_layers = get_output_layers_ids(model, layer, verbose)
-        if verbose:
-            print('Go for {}: {} ({}). Input layers: {} Output layers: {}'.format(level_id, layer_type, layer.name,
-                                                                              input_layers, output_layers))
-        if x is None:
-            input = get_copy_of_layer(layer, verbose)
-            x = input
-            tmp_model = Model(inputs=input.output, outputs=x.output)
-        else:
-            new_layer = get_copy_of_layer(layer, verbose)
-
-            prev_layer = []
-            for i in range(len(input_layers)):
-                tens = tmp_model.get_layer(name=model.layers[input_layers[i]].name).output
-                prev_layer.append(tens)
-            if len(prev_layer) == 1:
-                prev_layer = prev_layer[0]
-
-            output_tensor, output_names = get_layers_without_output(tmp_model, verbose)
-            x = new_layer(prev_layer)
-            if layer.name not in output_names:
-                output_tensor.append(x)
-            else:
-                output_tensor = x
-            tmp_model = Model(inputs=input.output, outputs=output_tensor)
-            tmp_model.get_layer(name=layer.name).set_weights(layer.get_weights())
-
-    model = Model(inputs=input.output, outputs=x)
-    return model
-
-
-def optimize_conv2d_batchnorm_block(m, initial_model, input_layers, conv, bn, verbose):
+def optimize_conv2d_batchnorm_block(m, initial_model, input_layers, conv, bn, verbose=False):
     from keras import layers
     from keras.models import Model
 
@@ -161,7 +122,8 @@ def optimize_conv2d_batchnorm_block(m, initial_model, input_layers, conv, bn, ve
 
     # Copy Conv2D layer
     layer_copy = layers.deserialize({'class_name': conv.__class__.__name__, 'config': conv_config})
-    layer_copy.name = bn.name # We use batch norm name here to find it later
+    # We use batch norm name here to find it later
+    layer_copy.name = bn.name
 
     # Create new model to initialize layer. We need to store other output tensors as well
     output_tensor, output_names = get_layers_without_output(m, verbose)
@@ -221,7 +183,8 @@ def optimize_separableconv2d_batchnorm_block(m, initial_model, input_layers, con
         exit()
 
     layer_copy = layers.deserialize({'class_name': conv.__class__.__name__, 'config': conv_config})
-    layer_copy.name = bn.name # We use batch norm name here to find it later
+    # We use batch norm name here to find it later
+    layer_copy.name = bn.name
 
     # Create new model to initialize layer. We need to store other output tensors as well
     output_tensor, output_names = get_layers_without_output(m, verbose)
