@@ -46,11 +46,15 @@ def compare_two_models_results(m1, m2, test_number=10000, max_batch=10000):
     print("Initial model prediction time for {} random images: {:.2f} seconds".format(test_number, t1))
     print("Reduced model prediction time for {} same random images: {:.2f} seconds".format(test_number, t2))
     print('Models raw max difference: {} (Avg difference: {})'.format(max_error, avg_error/count))
+    return max_error
 
 
 def get_test_neural_net(type):
     model = None
-    if type == 'mobilenet':
+    if type == 'mobilenet_small':
+        from keras.applications.mobilenet import MobileNet
+        model = MobileNet((128, 128, 3), depth_multiplier=1, alpha=0.25, include_top=True, weights='imagenet')
+    elif type == 'mobilenet':
         from keras.applications.mobilenet import MobileNet
         model = MobileNet((224, 224, 3), depth_multiplier=1, alpha=1.0, include_top=True, weights='imagenet')
     elif type == 'resnet50':
@@ -91,23 +95,28 @@ def get_test_neural_net(type):
 
 if __name__ == '__main__':
     import keras.backend as K
+    models_to_test = ['mobilenet_small', 'mobilenet', 'resnet50', 'inception_v3', 'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
+                       'nasnetmobile', 'nasnetlarge']
+    # Comment line below for full model testing
+    models_to_test = ['mobilenet_small']
 
-    for model_name in ['mobilenet', 'resnet50', 'inception_v3', 'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
-                       'nasnetmobile', 'nasnetlarge']:
+    for model_name in models_to_test:
         print('Go for: {}'.format(model_name))
         model = get_test_neural_net(model_name)
         print(model.summary())
         start_time = time.time()
-        model_reduced = reduce_keras_model(model, debug=True)
+        model_reduced = reduce_keras_model(model, verbose=True)
         print("Reduction time: {:.2f} seconds".format(time.time() - start_time))
         print(model_reduced.summary())
         print('Initial model number layers: {}'.format(len(model.layers)))
         print('Reduced model number layers: {}'.format(len(model_reduced.layers)))
         print('Compare models...')
         if model_name in ['nasnetlarge', 'deeplab_v3plus_mobile', 'deeplab_v3plus_xception']:
-            compare_two_models_results(model, model_reduced, test_number=10000, max_batch=128)
+            max_error = compare_two_models_results(model, model_reduced, test_number=10000, max_batch=128)
+        elif model_name in ['mobilenet_small']:
+            max_error = compare_two_models_results(model, model_reduced, test_number=1000, max_batch=1000)
         else:
-            compare_two_models_results(model, model_reduced, test_number=10000, max_batch=10000)
-        del model
-        del model_reduced
+            max_error = compare_two_models_results(model, model_reduced, test_number=10000, max_batch=10000)
         K.clear_session()
+        if max_error > 1e-04:
+            print('Possible error just happen! Max error value: {}'.format(max_error))

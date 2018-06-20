@@ -57,7 +57,7 @@ some time to convert model. You can see usage example in [test_bench.py](https:/
 | [DeepLabV3+](https://github.com/bonlime/keras-deeplab-v3-plus) (xception) | (512, 512, 3) | 409 | 263 | 41,258,213 | 40,954,013 | **1000.36** | **699.24** | 333.1 | 8.63e-05 | 5.22e-06 |
 | [ResNet152](https://github.com/broadinstitute/keras-resnet) | (224, 224, 3) | 566 | 411 | 60,344,232 | 60,117,096 | **107.92** | **68.53** | 357.65 | 8.94e-07 | 1.27e-09 |
 
-**Config**: Single NVIDIA GTX 1080 8 GB. Timing obtained on Tensorflow backend
+**Config**: Single NVIDIA GTX 1080 8 GB. Timing obtained on Tensorflow 1.4 (+ CUDA 8.0) backend
 
 ## Notes
 
