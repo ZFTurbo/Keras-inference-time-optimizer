@@ -67,4 +67,8 @@ Feel free to give advice on how to change code to make it faster.
 * You can check that both models work the same with function: compare_two_models_results(model, model_reduced, 10000)
 * Non-zero difference on final layer is accumulated because of large amount of floating point operations, which is not precise
 * Some non-standard layer or parameters (which is not used in any keras.applications CNN) can produce wrong results. 
-Most likely code will just fail in these conditions and you will see layer which cause it in python error message. 
+Most likely code will just fail in these conditions and you will see layer which cause it in python error message.
+ 
+## Requirements
+
+* Code was tested on Keras 2.1.6 (TensorFlow 1.4 backend) and on Keras 2.2.0 (TensorFlow 1.8.0 backend)
