@@ -55,6 +55,9 @@ def get_test_neural_net(type):
     elif type == 'mobilenet':
         from keras.applications.mobilenet import MobileNet
         model = MobileNet((224, 224, 3), depth_multiplier=1, alpha=1.0, include_top=True, weights='imagenet')
+    elif type == 'mobilenet_v2':
+        from keras.applications.mobilenetv2 import MobileNetV2
+        model = MobileNetV2((224, 224, 3), depth_multiplier=1, alpha=1.4, include_top=True, weights='imagenet')
     elif type == 'resnet50':
         from keras.applications.resnet50 import ResNet50
         model = ResNet50(input_shape=(224, 224, 3), include_top=True, weights='imagenet')
@@ -93,10 +96,11 @@ def get_test_neural_net(type):
 
 if __name__ == '__main__':
     import keras.backend as K
-    models_to_test = ['mobilenet_small', 'mobilenet', 'resnet50', 'inception_v3', 'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
+    models_to_test = ['mobilenet_small', 'mobilenet', 'mobilenet_v2', 'resnet50', 'inception_v3',
+                      'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
                        'nasnetmobile', 'nasnetlarge']
     # Comment line below for full model testing
-    models_to_test = ['mobilenet_small']
+    models_to_test = ['mobilenet_v2']
 
     for model_name in models_to_test:
         print('Go for: {}'.format(model_name))

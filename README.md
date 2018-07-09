@@ -43,6 +43,7 @@ some time to convert model. You can see usage example in [test_bench.py](https:/
 | Neural net | Input shape | Number of layers (Init) | Number of layers (Reduced) | Number of params (Init) | Number of params (Reduced) | Time to process 10000 images (Init) |  Time to process 10000 images (Reduced) | Conversion Time (sec) | Maximum diff on final layer | Average difference on final layer |  
 | --- | --- | --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  
 | MobileNet (1.0) | (224, 224, 3) | 102 | 75 | 4,253,864| 4,221,032| **32.38** | **22.13** | 12.45 | 2.80e-06 | 4.41e-09 |
+| MobileNetV2 (1.4) | (224, 224, 3) | 152 | 100 | 6,156,712| 6,084,808| **52.53** | **37.71** | 87.00 | 3.99e-06 | 6.88e-09 |
 | ResNet50 | (224, 224, 3) | 177 | 124 | 25,636,712 | 25,530,472 | **58.87** | **35.81** | 45.28 | 5.06e-07 | 1.24e-09 |
 | Inception_v3 | (299, 299, 3) | 313 | 219 | 23,851,784 | 23,817,352 | **79.15** | **59.55** | 126.02 | 7.74e-07 | 1.26e-09 |
 | Inception_Resnet_v2 | (299, 299, 3) | 782 | 578 | 55,873,736 | 55,813,192 | **131.16** | **102.38** | 766.14 | 8.04e-07 | 9.26e-10 |
