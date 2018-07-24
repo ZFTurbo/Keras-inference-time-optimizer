@@ -73,3 +73,7 @@ Most likely code will just fail in these conditions and you will see layer which
 ## Requirements
 
 * Code was tested on Keras 2.1.6 (TensorFlow 1.4 backend) and on Keras 2.2.0 (TensorFlow 1.8.0 backend)
+
+## Formulas
+
+![Base formulas](https://raw.githubusercontent.com/ZFTurbo/Keras-inference-time-optimizer/master/img/conv_bn_fusion.png)
