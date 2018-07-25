@@ -77,3 +77,7 @@ Most likely code will just fail in these conditions and you will see layer which
 ## Formulas
 
 ![Base formulas](https://raw.githubusercontent.com/ZFTurbo/Keras-inference-time-optimizer/master/img/conv_bn_fusion.png)
+
+## Other implementations
+
+[PyTorch BN Fusion](https://github.com/MIPT-Oulu/pytorch_bn_fusion) - with support for VGG, ResNet, SeNet.
