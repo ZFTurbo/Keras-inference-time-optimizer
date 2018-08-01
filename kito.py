@@ -70,10 +70,6 @@ def get_output_layers_ids(model, layer, verbose=False):
 
 
 def get_copy_of_layer(layer, verbose=False):
-    if get_keras_sub_version() == 1:
-        from keras.applications.mobilenet import relu6
-    else:
-        from keras_applications.mobilenet import relu6
     from keras.layers.core import Activation
     from keras import layers
     config = layer.get_config()
@@ -81,6 +77,10 @@ def get_copy_of_layer(layer, verbose=False):
     # Non-standard relu6 layer (from MobileNet)
     if layer.__class__.__name__ == 'Activation':
         if config['activation'] == 'relu6':
+            if get_keras_sub_version() == 1:
+                from keras.applications.mobilenet import relu6
+            else:
+                from keras_applications.mobilenet import relu6
             layer_copy = Activation(relu6, name=layer.name)
             return layer_copy
 
