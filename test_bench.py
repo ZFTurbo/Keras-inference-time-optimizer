@@ -47,6 +47,38 @@ def compare_two_models_results(m1, m2, test_number=10000, max_batch=10000):
     return max_error
 
 
+def get_custom_multi_io_model():
+    from keras.layers import Input, Conv2D, BatchNormalization, Activation
+    from keras.layers import Concatenate, GlobalAveragePooling2D, Dense
+    from keras.models import Model
+
+    inp1 = Input((224, 224, 3))
+    inp2 = Input((224, 224, 3))
+
+    branch1 = Conv2D(32, (3, 3), kernel_initializer='random_uniform')(inp1)
+    branch1 = BatchNormalization()(branch1)
+    branch1 = Activation('relu')(branch1)
+
+    branch2 = Conv2D(32, (3, 3), kernel_initializer='random_uniform')(inp2)
+    branch2 = BatchNormalization()(branch2)
+    branch2 = Activation('relu')(branch2)
+
+    x = Concatenate(axis=-1, name='concat')([branch1, branch2])
+
+    branch3 = Conv2D(32, (3, 3), kernel_initializer='random_uniform')(x)
+    branch3 = BatchNormalization()(branch3)
+    branch3 = Activation('relu')(branch3)
+
+    out1 = GlobalAveragePooling2D()(branch2)
+    out1 = Dense(1, activation='sigmoid', name='fc1')(out1)
+
+    out2 = GlobalAveragePooling2D()(branch3)
+    out2 = Dense(1, activation='sigmoid', name='fc2')(out2)
+
+    custom_model = Model(inputs=[inp1, inp2], outputs=[out1, out2])
+    return custom_model
+
+
 def get_test_neural_net(type):
     model = None
     if type == 'mobilenet_small':
@@ -91,6 +123,8 @@ def get_test_neural_net(type):
     elif type == 'vgg19':
         from keras.applications.vgg19 import VGG19
         model = VGG19(input_shape=(224, 224, 3), include_top=False, pooling='avg', weights='imagenet')
+    elif type == 'multi_io':
+        model = get_custom_multi_io_model()
     return model
 
 
@@ -100,7 +134,7 @@ if __name__ == '__main__':
                       'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
                        'nasnetmobile', 'nasnetlarge']
     # Comment line below for full model testing
-    models_to_test = ['mobilenet_v2']
+    models_to_test = ['mobilenet_small']
 
     for model_name in models_to_test:
         print('Go for: {}'.format(model_name))
