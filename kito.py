@@ -233,17 +233,31 @@ def optimize_separableconv2d_batchnorm_block(m, initial_model, input_layers, con
 def reduce_keras_model(model, verbose=False):
     from keras.models import Model
 
-    x = None
-    input = None
-    tmp_model = None
+    x = []
+    input = []
     skip_layers = []
     keras_sub_version = get_keras_sub_version()
     if verbose:
         print('Keras sub version: {}'.format(keras_sub_version))
 
+    # Find all inputs
     for level_id in range(len(model.layers)):
         layer = model.layers[level_id]
         layer_type = layer.__class__.__name__
+        if layer_type == 'InputLayer':
+            inp1 = get_copy_of_layer(layer, verbose)
+            x.append(inp1)
+            input.append(inp1.output)
+    tmp_model = Model(inputs=input, outputs=input)
+
+    for level_id in range(len(model.layers)):
+        layer = model.layers[level_id]
+        layer_type = layer.__class__.__name__
+
+        # Skip input layers
+        if layer_type == 'InputLayer':
+            continue
+
         input_layers = get_input_layers_ids(model, layer, verbose)
         output_layers = get_output_layers_ids(model, layer, verbose)
         if verbose:
@@ -270,28 +284,26 @@ def reduce_keras_model(model, verbose=False):
                 skip_layers.append(output_layers[0])
                 continue
 
-        if x is None:
-            input = get_copy_of_layer(layer, verbose)
-            x = input
-            tmp_model = Model(inputs=input.output, outputs=x.output)
+        new_layer = get_copy_of_layer(layer, verbose)
+
+        prev_layer = []
+        for i in range(len(input_layers)):
+            tens = tmp_model.get_layer(name=model.layers[input_layers[i]].name).output
+            prev_layer.append(tens)
+        if len(prev_layer) == 1:
+            prev_layer = prev_layer[0]
+
+        output_tensor, output_names = get_layers_without_output(tmp_model, verbose)
+        x = new_layer(prev_layer)
+        if layer.name not in output_names:
+            output_tensor.append(x)
         else:
-            new_layer = get_copy_of_layer(layer, verbose)
+            output_tensor = x
+        tmp_model = Model(inputs=input, outputs=output_tensor)
+        tmp_model.get_layer(name=layer.name).set_weights(layer.get_weights())
 
-            prev_layer = []
-            for i in range(len(input_layers)):
-                tens = tmp_model.get_layer(name=model.layers[input_layers[i]].name).output
-                prev_layer.append(tens)
-            if len(prev_layer) == 1:
-                prev_layer = prev_layer[0]
-
-            output_tensor, output_names = get_layers_without_output(tmp_model, verbose)
-            x = new_layer(prev_layer)
-            if layer.name not in output_names:
-                output_tensor.append(x)
-            else:
-                output_tensor = x
-            tmp_model = Model(inputs=input.output, outputs=output_tensor)
-            tmp_model.get_layer(name=layer.name).set_weights(layer.get_weights())
-
-    model = Model(inputs=input.output, outputs=x)
+    output_tensor, output_names = get_layers_without_output(tmp_model, verbose)
+    if verbose:
+        print('Output names: {}'.format(output_names))
+    model = Model(inputs=input, outputs=output_tensor)
     return model
