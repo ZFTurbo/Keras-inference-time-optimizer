@@ -8,14 +8,15 @@ import time
 
 
 def compare_two_models_results(m1, m2, test_number=10000, max_batch=10000):
-    i1 = m1.layers[0].input_shape
-    i2 = m2.layers[0].input_shape
-    if i1 != i2:
-        print('Different input shapes for models {} vs {}'.format(i1, i2))
-    o1 = m1.layers[-1].output_shape
-    o2 = m2.layers[-1].output_shape
-    if o1 != o2:
-        print('Different output shapes for models {} vs {}'.format(o1, o2))
+    input_shape1 = m1.input_shape
+    input_shape2 = m2.input_shape
+    if tuple(input_shape1) != tuple(input_shape2):
+        print('Different input shapes for models {} vs {}'.format(input_shape1, input_shape2))
+    output_shape1 = m1.output_shape
+    output_shape2 = m2.output_shape
+    if tuple(output_shape1) != tuple(output_shape2):
+        print('Different output shapes for models {} vs {}'.format(output_shape1, output_shape2))
+    print(input_shape1, input_shape2, output_shape1, output_shape2)
 
     t1 = 0
     t2 = 0
@@ -25,8 +26,13 @@ def compare_two_models_results(m1, m2, test_number=10000, max_batch=10000):
     for i in range(0, test_number, max_batch):
         tst = min(test_number - i, max_batch)
         print('Generate random images {}...'.format(tst))
-        matrix = np.random.uniform(0.0, 1.0, (tst,) + i1[1:])
-        print(matrix.shape)
+
+        if type(input_shape1) is list:
+            matrix = []
+            for i1 in input_shape1:
+                matrix.append(np.random.uniform(0.0, 1.0, (tst,) + i1[1:]))
+        else:
+            matrix = np.random.uniform(0.0, 1.0, (tst,) + input_shape1[1:])
 
         start_time = time.time()
         res1 = m1.predict(matrix)
@@ -36,10 +42,17 @@ def compare_two_models_results(m1, m2, test_number=10000, max_batch=10000):
         res2 = m2.predict(matrix)
         t2 += time.time() - start_time
 
-        abs_diff = np.abs(res1 - res2)
-        max_error = max(max_error, abs_diff.max())
-        avg_error += abs_diff.sum()
-        count += abs_diff.size
+        if type(res1) is list:
+            for i1 in range(len(res1)):
+                abs_diff = np.abs(res1[i1] - res2[i1])
+                max_error = max(max_error, abs_diff.max())
+                avg_error += abs_diff.sum()
+                count += abs_diff.size
+        else:
+            abs_diff = np.abs(res1 - res2)
+            max_error = max(max_error, abs_diff.max())
+            avg_error += abs_diff.sum()
+            count += abs_diff.size
 
     print("Initial model prediction time for {} random images: {:.2f} seconds".format(test_number, t1))
     print("Reduced model prediction time for {} same random images: {:.2f} seconds".format(test_number, t2))
@@ -132,7 +145,7 @@ if __name__ == '__main__':
     import keras.backend as K
     models_to_test = ['mobilenet_small', 'mobilenet', 'mobilenet_v2', 'resnet50', 'inception_v3',
                       'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
-                       'nasnetmobile', 'nasnetlarge']
+                       'nasnetmobile', 'nasnetlarge', 'multi_io']
     # Comment line below for full model testing
     models_to_test = ['mobilenet_small']
 
