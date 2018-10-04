@@ -92,6 +92,32 @@ def get_custom_multi_io_model():
     return custom_model
 
 
+def get_simple_submodel():
+    from keras.layers import Input, Conv2D
+    from keras.models import Model
+    inp = Input((28, 28, 4))
+    branch = Conv2D(8, (3, 3), padding='same', kernel_initializer='random_uniform')(inp)
+    model = Model(inputs=inp, outputs=branch)
+    return model
+
+
+def get_custom_model_with_other_model_as_layer():
+    from keras.layers import Input, Conv2D
+    from keras.layers import Concatenate
+    from keras.models import Model
+
+    inp1 = Input((28, 28, 3))
+    branch1 = Conv2D(4, (3, 3), padding='same', kernel_initializer='random_uniform')(inp1)
+    branch2 = Conv2D(4, (3, 3), padding='same', kernel_initializer='random_uniform')(inp1)
+    m = get_simple_submodel()
+    x1 = m(branch1)
+    x2 = m(branch2)
+    x = Concatenate(axis=-1, name='concat')([x1, x2])
+    x = Conv2D(32, (3, 3), padding='same', kernel_initializer='random_uniform')(x)
+    custom_model = Model(inputs=inp1, outputs=x)
+    return custom_model
+
+
 def get_test_neural_net(type):
     model = None
     if type == 'mobilenet_small':
@@ -138,6 +164,8 @@ def get_test_neural_net(type):
         model = VGG19(input_shape=(224, 224, 3), include_top=False, pooling='avg', weights='imagenet')
     elif type == 'multi_io':
         model = get_custom_multi_io_model()
+    elif type == 'multi_model_layer':
+        model = get_custom_model_with_other_model_as_layer()
     return model
 
 
@@ -147,7 +175,7 @@ if __name__ == '__main__':
                       'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
                        'nasnetmobile', 'nasnetlarge', 'multi_io']
     # Comment line below for full model testing
-    models_to_test = ['mobilenet_small']
+    models_to_test = ['multi_model_layer']
 
     for model_name in models_to_test:
         print('Go for: {}'.format(model_name))
