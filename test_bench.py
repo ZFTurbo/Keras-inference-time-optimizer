@@ -32,7 +32,12 @@ def compare_two_models_results(m1, m2, test_number=10000, max_batch=10000):
             for i1 in input_shape1:
                 matrix.append(np.random.uniform(0.0, 1.0, (tst,) + i1[1:]))
         else:
-            matrix = np.random.uniform(0.0, 1.0, (tst,) + input_shape1[1:])
+            # None shape fix
+            inp_shape_fix = list(input_shape1)
+            for i in range(1, len(inp_shape_fix)):
+                if inp_shape_fix[i] is None:
+                    inp_shape_fix[i] = 224
+            matrix = np.random.uniform(0.0, 1.0, (tst,) + tuple(inp_shape_fix[1:]))
 
         start_time = time.time()
         res1 = m1.predict(matrix)
@@ -173,18 +178,21 @@ if __name__ == '__main__':
     import keras.backend as K
     models_to_test = ['mobilenet_small', 'mobilenet', 'mobilenet_v2', 'resnet50', 'inception_v3',
                       'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
-                       'nasnetmobile', 'nasnetlarge', 'multi_io']
+                       'nasnetmobile', 'nasnetlarge', 'multi_io', 'multi_model_layer']
     # Comment line below for full model testing
-    models_to_test = ['multi_model_layer']
+    models_to_test = ['mobilenet_small']
+    verbose = True
 
     for model_name in models_to_test:
         print('Go for: {}'.format(model_name))
         model = get_test_neural_net(model_name)
-        print(model.summary())
+        if verbose:
+            print(model.summary())
         start_time = time.time()
-        model_reduced = reduce_keras_model(model, verbose=True)
+        model_reduced = reduce_keras_model(model, verbose=verbose)
         print("Reduction time: {:.2f} seconds".format(time.time() - start_time))
-        print(model_reduced.summary())
+        if verbose:
+            print(model_reduced.summary())
         print('Initial model number layers: {}'.format(len(model.layers)))
         print('Reduced model number layers: {}'.format(len(model_reduced.layers)))
         print('Compare models...')
