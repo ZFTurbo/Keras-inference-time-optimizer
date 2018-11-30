@@ -16,7 +16,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+
 import numpy as np
+
+
+__version__ = '1.0.0'
 
 
 def get_keras_sub_version():
@@ -391,3 +395,4 @@ def reduce_keras_model(model, verbose=False):
         print('Output names: {}'.format(output_names))
     model = Model(inputs=input, outputs=output_tensor)
     return model
+

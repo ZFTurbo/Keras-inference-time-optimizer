@@ -1,10 +1,16 @@
 # Keras inference time optimizer (KITO)
 
 This code takes on input trained Keras model and optimize layer structure and weights in such a way that model became 
-much faster (~30%), but works identically to initial model. It can be extremely useful in case you need to process large 
+much faster (~10-30%), but works identically to initial model. It can be extremely useful in case you need to process large 
 amount of images with trained model. Reduce operation was tested on all Keras models zoo. See 
 comparison table below.
- 
+
+## Installation
+
+```
+pip install kito
+```
+
 ## How it works?
  
 In current version it only apply single type of optimization: It reduces Conv2D + BatchNormalization set of layers to 
@@ -36,7 +42,7 @@ model_reduced.predict(...)
 ```
 
 So basically you need to insert 2 lines in your code to speed up operations. But note that it requires 
-some time to convert model. You can see usage example in [test_bench.py](https://github.com/ZFTurbo/Keras-inference-time-optimizer/blob/master/test_bench.py)
+some time to convert model. You can see usage example in [test_bench.py](https://github.com/ZFTurbo/Keras-inference-time-optimizer/blob/master/kito/test_bench.py)
 
 ## Comparison table
 
