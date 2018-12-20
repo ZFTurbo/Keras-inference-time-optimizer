@@ -98,22 +98,29 @@ def get_custom_multi_io_model():
 
 
 def get_simple_submodel():
-    from keras.layers import Input, Conv2D
+    from keras.layers import Input, Conv2D, BatchNormalization, Activation
     from keras.models import Model
     inp = Input((28, 28, 4))
-    branch = Conv2D(8, (3, 3), padding='same', kernel_initializer='random_uniform')(inp)
-    model = Model(inputs=inp, outputs=branch)
+    x = Conv2D(8, (3, 3), padding='same', kernel_initializer='random_uniform')(inp)
+    x = BatchNormalization()(x)
+    out = Activation('relu')(x)
+    model = Model(inputs=inp, outputs=out)
     return model
 
 
 def get_custom_model_with_other_model_as_layer():
-    from keras.layers import Input, Conv2D
+    from keras.layers import Input, Conv2D, BatchNormalization, Activation
     from keras.layers import Concatenate
     from keras.models import Model
 
     inp1 = Input((28, 28, 3))
     branch1 = Conv2D(4, (3, 3), padding='same', kernel_initializer='random_uniform')(inp1)
+    branch1 = BatchNormalization()(branch1)
+    branch1 = Activation('relu')(branch1)
+
     branch2 = Conv2D(4, (3, 3), padding='same', kernel_initializer='random_uniform')(inp1)
+    branch2 = BatchNormalization()(branch2)
+    branch2 = Activation('relu')(branch2)
     m = get_simple_submodel()
     x1 = m(branch1)
     x2 = m(branch2)
@@ -121,6 +128,20 @@ def get_custom_model_with_other_model_as_layer():
     x = Conv2D(32, (3, 3), padding='same', kernel_initializer='random_uniform')(x)
     custom_model = Model(inputs=inp1, outputs=x)
     return custom_model
+
+
+def get_small_model_with_other_model_as_layer():
+    from keras.layers import Input, Dense
+    from keras.models import Model
+    from keras.applications.mobilenet import MobileNet
+
+    inp_mask = Input(shape=(128, 128, 3))
+    pretrain_model_mask = MobileNet(input_shape=(128, 128, 3), include_top=False, weights='imagenet', pooling='avg')
+    pretrain_model_mask.name = 'resnet50'
+    x = pretrain_model_mask(inp_mask)
+    out = Dense(2, activation='sigmoid')(x)
+    model = Model(inputs=inp_mask, outputs=[out])
+    return model
 
 
 def get_test_neural_net(type):
@@ -169,8 +190,10 @@ def get_test_neural_net(type):
         model = VGG19(input_shape=(224, 224, 3), include_top=False, pooling='avg', weights='imagenet')
     elif type == 'multi_io':
         model = get_custom_multi_io_model()
-    elif type == 'multi_model_layer':
+    elif type == 'multi_model_layer_1':
         model = get_custom_model_with_other_model_as_layer()
+    elif type == 'multi_model_layer_2':
+        model = get_small_model_with_other_model_as_layer()
     return model
 
 
@@ -178,7 +201,7 @@ if __name__ == '__main__':
     import keras.backend as K
     models_to_test = ['mobilenet_small', 'mobilenet', 'mobilenet_v2', 'resnet50', 'inception_v3',
                       'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
-                       'nasnetmobile', 'nasnetlarge', 'multi_io', 'multi_model_layer']
+                       'nasnetmobile', 'nasnetlarge', 'multi_io', 'multi_model_layer_1', 'multi_model_layer_2']
     # Comment line below for full model testing
     models_to_test = ['mobilenet_small']
     verbose = True
