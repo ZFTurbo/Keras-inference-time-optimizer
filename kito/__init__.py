@@ -20,7 +20,7 @@ from __future__ import print_function
 import numpy as np
 
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 
 def get_keras_sub_version():
@@ -57,7 +57,7 @@ def get_output_layers_ids(model, layer, verbose=False):
         res[layer_id] = i
 
     outbound_layers = []
-    layer_id = str(id(layer))
+
     for i, node in enumerate(layer._outbound_nodes):
         node_key = layer.name + '_ib-' + str(i)
         if get_keras_sub_version() == 1:
@@ -142,26 +142,8 @@ def get_copy_of_layer(layer, verbose=False):
 
 
 def get_layers_without_output(model, verbose=False):
-    output_tensor = []
-    output_names = []
-    for level_id in range(len(model.layers)):
-        layer = model.layers[level_id]
-        output_layers = get_output_layers_ids(model, layer, verbose)
-        if len(output_layers) == 0:
-            try:
-                if type(layer.output) is list:
-                    output_tensor += layer.output
-                else:
-                    output_tensor.append(layer.output)
-                output_names.append(layer.name)
-            except:
-                # Ugly need to check for correctness
-                for node in layer._inbound_nodes:
-                    for i in range(len(node.inbound_layers)):
-                        outbound_layer = node.inbound_layers[i].name
-                        outbound_tensor_index = node.tensor_indices[i]
-                        output_tensor.append(node.output_tensors[outbound_tensor_index])
-                        output_names.append(outbound_layer)
+    output_tensor = model.outputs.copy()
+    output_names = model.output_names.copy()
     if verbose:
         print('Outputs [{}]: {}'.format(len(output_tensor), output_names))
     return output_tensor, output_names
@@ -347,6 +329,9 @@ def reduce_keras_model(model, verbose=False):
         if layer_type == 'Model':
             new_layer = clone_model(layer)
             new_layer.set_weights(layer.get_weights())
+            if verbose is True:
+                print('Try to recurcievly reduce internal model {}!'.format(new_layer.name))
+            new_layer = reduce_keras_model(new_layer, verbose=verbose)
         else:
             new_layer = get_copy_of_layer(layer, verbose)
 
@@ -363,15 +348,22 @@ def reduce_keras_model(model, verbose=False):
                         outbound_tensor_index = node.tensor_indices[i]
                         prev_layer.append(node.output_tensors[outbound_tensor_index])
 
+        output_tensor, output_names = get_layers_without_output(tmp_model, verbose)
+
         if len(prev_layer) == 1:
             prev_layer = prev_layer[0]
 
-        output_tensor, output_names = get_layers_without_output(tmp_model, verbose)
         if layer_type == 'Model':
-            for f in prev_layer:
-                x = new_layer(f)
-                if f in output_tensor:
-                    output_tensor.remove(f)
+            if type(prev_layer) is list:
+                for f in prev_layer:
+                    x = new_layer(f)
+                    if f in output_tensor:
+                        output_tensor.remove(f)
+                    output_tensor.append(x)
+            else:
+                x = new_layer(prev_layer)
+                if prev_layer in output_tensor:
+                    output_tensor.remove(prev_layer)
                 output_tensor.append(x)
         else:
             x = new_layer(prev_layer)
@@ -388,11 +380,12 @@ def reduce_keras_model(model, verbose=False):
                 output_tensor.append(x)
 
         tmp_model = Model(inputs=input, outputs=output_tensor)
-        tmp_model.get_layer(name=layer.name).set_weights(layer.get_weights())
+        if layer_type != 'Model':
+            tmp_model.get_layer(name=layer.name).set_weights(layer.get_weights())
 
     output_tensor, output_names = get_layers_without_output(tmp_model, verbose)
     if verbose:
         print('Output names: {}'.format(output_names))
-    model = Model(inputs=input, outputs=output_tensor)
+    model = Model(inputs=input, outputs=output_tensor, name=model.name)
     return model
 
