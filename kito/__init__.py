@@ -20,7 +20,7 @@ from __future__ import print_function
 import numpy as np
 
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 
 def get_keras_sub_version():
@@ -142,8 +142,8 @@ def get_copy_of_layer(layer, verbose=False):
 
 
 def get_layers_without_output(model, verbose=False):
-    output_tensor = model.outputs.copy()
-    output_names = model.output_names.copy()
+    output_tensor = list(model.outputs)
+    output_names = list(model.output_names)
     if verbose:
         print('Outputs [{}]: {}'.format(len(output_tensor), output_names))
     return output_tensor, output_names

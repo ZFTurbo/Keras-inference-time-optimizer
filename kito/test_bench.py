@@ -137,7 +137,7 @@ def get_small_model_with_other_model_as_layer():
 
     inp_mask = Input(shape=(128, 128, 3))
     pretrain_model_mask = MobileNet(input_shape=(128, 128, 3), include_top=False, weights='imagenet', pooling='avg')
-    pretrain_model_mask.name = 'resnet50'
+    pretrain_model_mask.name = 'mobilenet'
     x = pretrain_model_mask(inp_mask)
     out = Dense(2, activation='sigmoid')(x)
     model = Model(inputs=inp_mask, outputs=[out])
