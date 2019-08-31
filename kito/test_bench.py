@@ -144,7 +144,20 @@ def get_small_model_with_other_model_as_layer():
     return model
 
 
-def get_test_neural_net(type):
+def get_Conv2DTranspose_model():
+    from keras.layers import Input, Conv2D, Conv2DTranspose, BatchNormalization, Activation
+    from keras.models import Model
+    inp = Input((28, 28, 4))
+    x = Conv2DTranspose(8, (3, 3), padding='same', kernel_initializer='random_uniform')(inp)
+    x = BatchNormalization()(x)
+    x = Conv2DTranspose(4, (3, 3), strides=(4, 4), padding='same', kernel_initializer='random_uniform')(x)
+    x = BatchNormalization()(x)
+    out = Activation('relu')(x)
+    model = Model(inputs=inp, outputs=out)
+    return model
+
+
+def get_tst_neural_net(type):
     model = None
     if type == 'mobilenet_small':
         from keras.applications.mobilenet import MobileNet
@@ -194,6 +207,8 @@ def get_test_neural_net(type):
         model = get_custom_model_with_other_model_as_layer()
     elif type == 'multi_model_layer_2':
         model = get_small_model_with_other_model_as_layer()
+    elif type == 'Conv2DTranspose':
+        model = get_Conv2DTranspose_model()
     return model
 
 
@@ -201,14 +216,15 @@ if __name__ == '__main__':
     import keras.backend as K
     models_to_test = ['mobilenet_small', 'mobilenet', 'mobilenet_v2', 'resnet50', 'inception_v3',
                       'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
-                       'nasnetmobile', 'nasnetlarge', 'multi_io', 'multi_model_layer_1', 'multi_model_layer_2']
+                       'nasnetmobile', 'nasnetlarge', 'multi_io', 'multi_model_layer_1', 'multi_model_layer_2',
+                      'Conv2DTranspose']
     # Comment line below for full model testing
     models_to_test = ['mobilenet_small']
     verbose = True
 
     for model_name in models_to_test:
         print('Go for: {}'.format(model_name))
-        model = get_test_neural_net(model_name)
+        model = get_tst_neural_net(model_name)
         if verbose:
             print(model.summary())
         start_time = time.time()
