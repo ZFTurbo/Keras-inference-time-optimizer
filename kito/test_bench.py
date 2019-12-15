@@ -270,6 +270,8 @@ if __name__ == '__main__':
         print('Compare models...')
         if model_name in ['nasnetlarge', 'deeplab_v3plus_mobile', 'deeplab_v3plus_xception']:
             max_error = compare_two_models_results(model, model_reduced, test_number=10000, max_batch=128)
+        elif model_name in ['RetinaNet']:
+            max_error = compare_two_models_results(model, model_reduced, test_number=1280, max_batch=128)
         elif model_name in ['mobilenet_small']:
             max_error = compare_two_models_results(model, model_reduced, test_number=1000, max_batch=1000)
         else:
