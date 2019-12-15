@@ -157,8 +157,36 @@ def get_Conv2DTranspose_model():
     return model
 
 
+def get_RetinaNet_model():
+    from keras.utils import custom_object_scope
+    from keras_resnet.layers import BatchNormalization
+    from keras_retinanet.layers import UpsampleLike, Anchors, RegressBoxes, ClipBoxes, FilterDetections
+    from keras_retinanet.initializers import PriorProbability
+    from keras_retinanet import models
+    from keras_retinanet.models.retinanet import retinanet_bbox
+
+    custom_objects = {
+        'BatchNormalization': BatchNormalization,
+        'UpsampleLike': UpsampleLike,
+        'Anchors': Anchors,
+        'RegressBoxes': RegressBoxes,
+        'PriorProbability': PriorProbability,
+        'ClipBoxes': ClipBoxes,
+        'FilterDetections': FilterDetections,
+    }
+
+    with custom_object_scope(custom_objects):
+        backbone = models.backbone('resnet50')
+        model = backbone.retinanet(500)
+        prediction_model = retinanet_bbox(model=model)
+        # prediction_model.load_weights("...your weights here...")
+
+    return prediction_model, custom_objects
+
+
 def get_tst_neural_net(type):
     model = None
+    custom_objects = dict()
     if type == 'mobilenet_small':
         from keras.applications.mobilenet import MobileNet
         model = MobileNet((128, 128, 3), depth_multiplier=1, alpha=0.25, include_top=True, weights='imagenet')
@@ -209,26 +237,31 @@ def get_tst_neural_net(type):
         model = get_small_model_with_other_model_as_layer()
     elif type == 'Conv2DTranspose':
         model = get_Conv2DTranspose_model()
-    return model
+    elif type == 'RetinaNet':
+        model, custom_objects = get_RetinaNet_model()
+    return model, custom_objects
 
 
 if __name__ == '__main__':
     import keras.backend as K
+    from keras.utils import custom_object_scope
+
     models_to_test = ['mobilenet_small', 'mobilenet', 'mobilenet_v2', 'resnet50', 'inception_v3',
                       'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
                        'nasnetmobile', 'nasnetlarge', 'multi_io', 'multi_model_layer_1', 'multi_model_layer_2',
-                      'Conv2DTranspose']
+                      'Conv2DTranspose', 'RetinaNet']
     # Comment line below for full model testing
     models_to_test = ['mobilenet_small']
     verbose = True
 
     for model_name in models_to_test:
         print('Go for: {}'.format(model_name))
-        model = get_tst_neural_net(model_name)
+        model, custom_objects = get_tst_neural_net(model_name)
         if verbose:
             print(model.summary())
         start_time = time.time()
-        model_reduced = reduce_keras_model(model, verbose=verbose)
+        with custom_object_scope(custom_objects):
+            model_reduced = reduce_keras_model(model, verbose=verbose)
         print("Reduction time: {:.2f} seconds".format(time.time() - start_time))
         if verbose:
             print(model_reduced.summary())
