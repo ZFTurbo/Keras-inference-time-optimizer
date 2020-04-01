@@ -392,6 +392,9 @@ def reduce_keras_model(model, verbose=False):
     output_tensor, output_names = get_layers_without_output(tmp_model, verbose)
     if verbose:
         print('Output names: {}'.format(output_names))
-    model = Model(inputs=input, outputs=output_tensor, name=model.name)
-    return model
+    model_reduced = Model(inputs=input, outputs=output_tensor, name=model.name)
+    if verbose:
+        print('Initial number of layers: {}'.format(len(model.layers)))
+        print('Reduced number of layers: {}'.format(len(model_reduced.layers)))
+    return model_reduced
 
