@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name='kito',
-    version='1.0.3',
+    version='1.0.4',
     author='Roman Sol (ZFTurbo)',
     packages=['kito', ],
     url='https://github.com/ZFTurbo/Keras-inference-time-optimizer',

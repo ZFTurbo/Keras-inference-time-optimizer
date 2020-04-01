@@ -184,6 +184,20 @@ def get_RetinaNet_model():
     return prediction_model, custom_objects
 
 
+def get_simple_3d_model():
+    from keras.layers import Input, Conv3D, BatchNormalization, Activation
+    from keras.models import Model
+    inp = Input((28, 28, 28, 4))
+    x = Conv3D(32, (3, 3, 3), padding='same', kernel_initializer='random_uniform')(inp)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = Conv3D(32, (3, 3, 3), padding='same', kernel_initializer='random_uniform')(x)
+    x = BatchNormalization()(x)
+    out = Activation('relu')(x)
+    model = Model(inputs=inp, outputs=out)
+    return model
+
+
 def get_tst_neural_net(type):
     model = None
     custom_objects = dict()
@@ -239,6 +253,8 @@ def get_tst_neural_net(type):
         model = get_Conv2DTranspose_model()
     elif type == 'RetinaNet':
         model, custom_objects = get_RetinaNet_model()
+    elif type == 'conv3d_model':
+        model = get_simple_3d_model()
     return model, custom_objects
 
 
@@ -270,7 +286,7 @@ if __name__ == '__main__':
         print('Compare models...')
         if model_name in ['nasnetlarge', 'deeplab_v3plus_mobile', 'deeplab_v3plus_xception']:
             max_error = compare_two_models_results(model, model_reduced, test_number=10000, max_batch=128)
-        elif model_name in ['RetinaNet']:
+        elif model_name in ['RetinaNet', 'conv3d_model']:
             max_error = compare_two_models_results(model, model_reduced, test_number=1280, max_batch=128)
         elif model_name in ['mobilenet_small']:
             max_error = compare_two_models_results(model, model_reduced, test_number=1000, max_batch=1000)
