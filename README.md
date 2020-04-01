@@ -21,6 +21,7 @@ Also supported:
 * DepthwiseConv2D + BatchNormalization => DepthwiseConv2D 
 * SeparableConv2D + BatchNormalization => SeparableConv2D
 * Conv2DTranspose + BatchNormalization => Conv2DTranspose
+* Conv3D + BatchNormalization => Conv3D
 
 ## How to use
 
