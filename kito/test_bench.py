@@ -198,6 +198,20 @@ def get_simple_3d_model():
     return model
 
 
+def get_simple_1d_model():
+    from keras.layers import Input, Conv1D, BatchNormalization, Activation
+    from keras.models import Model
+    inp = Input((256, 2))
+    x = Conv1D(32, 3, padding='same', kernel_initializer='random_uniform')(inp)
+    x = BatchNormalization()(x)
+    x = Activation('relu')(x)
+    x = Conv1D(32, 3, padding='same', kernel_initializer='random_uniform')(x)
+    x = BatchNormalization()(x)
+    out = Activation('relu')(x)
+    model = Model(inputs=inp, outputs=out)
+    return model
+
+
 def get_tst_neural_net(type):
     model = None
     custom_objects = dict()
@@ -255,6 +269,8 @@ def get_tst_neural_net(type):
         model, custom_objects = get_RetinaNet_model()
     elif type == 'conv3d_model':
         model = get_simple_3d_model()
+    elif type == 'conv1d_model':
+        model = get_simple_1d_model()
     return model, custom_objects
 
 
@@ -265,9 +281,9 @@ if __name__ == '__main__':
     models_to_test = ['mobilenet_small', 'mobilenet', 'mobilenet_v2', 'resnet50', 'inception_v3',
                       'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
                        'nasnetmobile', 'nasnetlarge', 'multi_io', 'multi_model_layer_1', 'multi_model_layer_2',
-                      'Conv2DTranspose', 'RetinaNet']
+                      'Conv2DTranspose', 'RetinaNet', 'conv3d_model', 'conv1d_model']
     # Comment line below for full model testing
-    models_to_test = ['mobilenet_small']
+    models_to_test = ['conv1d_model']
     verbose = True
 
     for model_name in models_to_test:
@@ -286,7 +302,7 @@ if __name__ == '__main__':
         print('Compare models...')
         if model_name in ['nasnetlarge', 'deeplab_v3plus_mobile', 'deeplab_v3plus_xception']:
             max_error = compare_two_models_results(model, model_reduced, test_number=10000, max_batch=128)
-        elif model_name in ['RetinaNet', 'conv3d_model']:
+        elif model_name in ['RetinaNet', 'conv3d_model', 'conv1d_model']:
             max_error = compare_two_models_results(model, model_reduced, test_number=1280, max_batch=128)
         elif model_name in ['mobilenet_small']:
             max_error = compare_two_models_results(model, model_reduced, test_number=1000, max_batch=1000)

@@ -22,6 +22,7 @@ Also supported:
 * SeparableConv2D + BatchNormalization => SeparableConv2D
 * Conv2DTranspose + BatchNormalization => Conv2DTranspose
 * Conv3D + BatchNormalization => Conv3D
+* Conv1D + BatchNormalization => Conv1D
 
 ## How to use
 

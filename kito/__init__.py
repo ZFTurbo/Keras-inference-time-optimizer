@@ -213,6 +213,9 @@ def optimize_conv_batchnorm_block(m, initial_model, input_layers, conv, bn, verb
     elif conv_layer_type == 'Conv3D':
         for i in range(conv_weights.shape[-1]):
             conv_weights[:, :, :, :, i] *= A[i]
+    elif conv_layer_type == 'Conv1D':
+        for i in range(conv_weights.shape[-1]):
+            conv_weights[:, :, i] *= A[i]
 
     tmp_model.get_layer(layer_copy.name).set_weights((conv_weights, B))
     return tmp_model
@@ -320,7 +323,7 @@ def reduce_keras_model(model, verbose=False):
         if len(output_layers) == 1:
             next_layer = model.layers[output_layers[0]]
             next_layer_type = next_layer.__class__.__name__
-            if layer_type in ['Conv2D', 'DepthwiseConv2D', 'Conv2DTranspose', 'Conv3D'] and next_layer_type == 'BatchNormalization':
+            if layer_type in ['Conv2D', 'DepthwiseConv2D', 'Conv2DTranspose', 'Conv3D', 'Conv1D'] and next_layer_type == 'BatchNormalization':
                 tmp_model = optimize_conv_batchnorm_block(tmp_model, model, input_layers, layer, next_layer, verbose)
                 x = tmp_model.layers[-1].output
                 skip_layers.append(output_layers[0])
