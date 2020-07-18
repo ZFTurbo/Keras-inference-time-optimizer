@@ -5,10 +5,14 @@ Author: Roman Solovyev (ZFTurbo), IPPM RAS: https://github.com/ZFTurbo/
 
 import argparse
 
-from keras.models import load_model
+try:
+    from keras.models import load_model
+except:
+    from tensorflow.keras.models import load_model
 
 from kito import *
 import time
+
 
 def compare_two_models_results(m1, m2, test_number=10000, max_batch=10000):
     input_shape1 = m1.input_shape
