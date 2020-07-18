@@ -20,7 +20,7 @@ from __future__ import print_function
 import numpy as np
 
 
-__version__ = '1.0.2'
+__version__ = '1.0.5'
 
 
 def get_keras_sub_version():
