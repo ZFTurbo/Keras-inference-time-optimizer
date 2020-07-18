@@ -5,6 +5,20 @@ Author: Roman Solovyev (ZFTurbo), IPPM RAS: https://github.com/ZFTurbo/
 
 from kito import *
 import time
+try:
+    from keras.layers import Input, Conv2D, BatchNormalization, Activation, Concatenate, GlobalAveragePooling2D, Dense, \
+        Conv2DTranspose, Conv3D, Conv1D
+    from keras.models import Model
+    from keras.applications.mobilenet import MobileNet
+    import keras.backend as K
+    from keras.utils import custom_object_scope
+except:
+    from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, Activation, Concatenate, \
+        GlobalAveragePooling2D, Dense, Conv2DTranspose, Conv3D, Conv1D
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.applications.mobilenet import MobileNet
+    import tensorflow.keras.backend as K
+    from tensorflow.keras.utils import custom_object_scope
 
 
 def compare_two_models_results(m1, m2, test_number=10000, max_batch=10000):
@@ -66,10 +80,6 @@ def compare_two_models_results(m1, m2, test_number=10000, max_batch=10000):
 
 
 def get_custom_multi_io_model():
-    from keras.layers import Input, Conv2D, BatchNormalization, Activation
-    from keras.layers import Concatenate, GlobalAveragePooling2D, Dense
-    from keras.models import Model
-
     inp1 = Input((224, 224, 3))
     inp2 = Input((224, 224, 3))
 
@@ -98,8 +108,6 @@ def get_custom_multi_io_model():
 
 
 def get_simple_submodel():
-    from keras.layers import Input, Conv2D, BatchNormalization, Activation
-    from keras.models import Model
     inp = Input((28, 28, 4))
     x = Conv2D(8, (3, 3), padding='same', kernel_initializer='random_uniform')(inp)
     x = BatchNormalization()(x)
@@ -109,10 +117,6 @@ def get_simple_submodel():
 
 
 def get_custom_model_with_other_model_as_layer():
-    from keras.layers import Input, Conv2D, BatchNormalization, Activation
-    from keras.layers import Concatenate
-    from keras.models import Model
-
     inp1 = Input((28, 28, 3))
     branch1 = Conv2D(4, (3, 3), padding='same', kernel_initializer='random_uniform')(inp1)
     branch1 = BatchNormalization()(branch1)
@@ -121,9 +125,10 @@ def get_custom_model_with_other_model_as_layer():
     branch2 = Conv2D(4, (3, 3), padding='same', kernel_initializer='random_uniform')(inp1)
     branch2 = BatchNormalization()(branch2)
     branch2 = Activation('relu')(branch2)
-    m = get_simple_submodel()
-    x1 = m(branch1)
-    x2 = m(branch2)
+    m1 = get_simple_submodel()
+    m2 = get_simple_submodel()
+    x1 = m1(branch1)
+    x2 = m2(branch2)
     x = Concatenate(axis=-1, name='concat')([x1, x2])
     x = Conv2D(32, (3, 3), padding='same', kernel_initializer='random_uniform')(x)
     custom_model = Model(inputs=inp1, outputs=x)
@@ -131,13 +136,12 @@ def get_custom_model_with_other_model_as_layer():
 
 
 def get_small_model_with_other_model_as_layer():
-    from keras.layers import Input, Dense
-    from keras.models import Model
-    from keras.applications.mobilenet import MobileNet
-
     inp_mask = Input(shape=(128, 128, 3))
     pretrain_model_mask = MobileNet(input_shape=(128, 128, 3), include_top=False, weights='imagenet', pooling='avg')
-    pretrain_model_mask.name = 'mobilenet'
+    try:
+        pretrain_model_mask.name = 'mobilenet'
+    except:
+        pretrain_model_mask._name = 'mobilenet'
     x = pretrain_model_mask(inp_mask)
     out = Dense(2, activation='sigmoid')(x)
     model = Model(inputs=inp_mask, outputs=[out])
@@ -145,8 +149,6 @@ def get_small_model_with_other_model_as_layer():
 
 
 def get_Conv2DTranspose_model():
-    from keras.layers import Input, Conv2D, Conv2DTranspose, BatchNormalization, Activation
-    from keras.models import Model
     inp = Input((28, 28, 4))
     x = Conv2DTranspose(8, (3, 3), padding='same', kernel_initializer='random_uniform')(inp)
     x = BatchNormalization()(x)
@@ -185,8 +187,6 @@ def get_RetinaNet_model():
 
 
 def get_simple_3d_model():
-    from keras.layers import Input, Conv3D, BatchNormalization, Activation
-    from keras.models import Model
     inp = Input((28, 28, 28, 4))
     x = Conv3D(32, (3, 3, 3), padding='same', kernel_initializer='random_uniform')(inp)
     x = BatchNormalization()(x)
@@ -199,8 +199,6 @@ def get_simple_3d_model():
 
 
 def get_simple_1d_model():
-    from keras.layers import Input, Conv1D, BatchNormalization, Activation
-    from keras.models import Model
     inp = Input((256, 2))
     x = Conv1D(32, 3, padding='same', kernel_initializer='random_uniform')(inp)
     x = BatchNormalization()(x)
@@ -216,46 +214,88 @@ def get_tst_neural_net(type):
     model = None
     custom_objects = dict()
     if type == 'mobilenet_small':
-        from keras.applications.mobilenet import MobileNet
+        try:
+            from keras.applications.mobilenet import MobileNet
+        except:
+            from tensorflow.keras.applications.mobilenet import MobileNet
         model = MobileNet((128, 128, 3), depth_multiplier=1, alpha=0.25, include_top=True, weights='imagenet')
     elif type == 'mobilenet':
-        from keras.applications.mobilenet import MobileNet
+        try:
+            from keras.applications.mobilenet import MobileNet
+        except:
+            from tensorflow.keras.applications.mobilenet import MobileNet
         model = MobileNet((224, 224, 3), depth_multiplier=1, alpha=1.0, include_top=True, weights='imagenet')
     elif type == 'mobilenet_v2':
-        from keras.applications.mobilenetv2 import MobileNetV2
-        model = MobileNetV2((224, 224, 3), depth_multiplier=1, alpha=1.4, include_top=True, weights='imagenet')
+        try:
+            from keras.applications.mobilenet_v2 import MobileNetV2
+        except:
+            from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
+        model = MobileNetV2((224, 224, 3), alpha=1.4, include_top=True, weights='imagenet')
     elif type == 'resnet50':
-        from keras.applications.resnet50 import ResNet50
+        try:
+            from keras.applications.resnet50 import ResNet50
+        except:
+            from tensorflow.keras.applications.resnet50 import ResNet50
         model = ResNet50(input_shape=(224, 224, 3), include_top=True, weights='imagenet')
     elif type == 'inception_v3':
-        from keras.applications.inception_v3 import InceptionV3
+        try:
+            from keras.applications.inception_v3 import InceptionV3
+        except:
+            from tensorflow.keras.applications.inception_v3 import InceptionV3
         model = InceptionV3(input_shape=(299, 299, 3), include_top=True, weights='imagenet')
     elif type == 'inception_resnet_v2':
-        from keras.applications.inception_resnet_v2 import InceptionResNetV2
+        try:
+            from keras.applications.inception_resnet_v2 import InceptionResNetV2
+        except:
+            from tensorflow.keras.applications.inception_resnet_v2 import InceptionResNetV2
         model = InceptionResNetV2(input_shape=(299, 299, 3), include_top=True, weights='imagenet')
     elif type == 'xception':
-        from keras.applications.xception import Xception
+        try:
+            from keras.applications.xception import Xception
+        except:
+            from tensorflow.keras.applications.xception import Xception
         model = Xception(input_shape=(299, 299, 3), include_top=True, weights='imagenet')
     elif type == 'densenet121':
-        from keras.applications.densenet import DenseNet121
+        try:
+            from keras.applications.densenet import DenseNet121
+        except:
+            from tensorflow.keras.applications.densenet import DenseNet121
         model = DenseNet121(input_shape=(224, 224, 3), include_top=True, weights='imagenet')
     elif type == 'densenet169':
-        from keras.applications.densenet import DenseNet169
+        try:
+            from keras.applications.densenet import DenseNet169
+        except:
+            from tensorflow.keras.applications.densenet import DenseNet169
         model = DenseNet169(input_shape=(224, 224, 3), include_top=True, weights='imagenet')
     elif type == 'densenet201':
-        from keras.applications.densenet import DenseNet201
+        try:
+            from keras.applications.densenet import DenseNet201
+        except:
+            from tensorflow.keras.applications.densenet import DenseNet201
         model = DenseNet201(input_shape=(224, 224, 3), include_top=True, weights='imagenet')
     elif type == 'nasnetmobile':
-        from keras.applications.nasnet import NASNetMobile
+        try:
+            from keras.applications.nasnet import NASNetMobile
+        except:
+            from tensorflow.keras.applications.nasnet import NASNetMobile
         model = NASNetMobile(input_shape=(224, 224, 3), include_top=True, weights='imagenet')
     elif type == 'nasnetlarge':
-        from keras.applications.nasnet import NASNetLarge
+        try:
+            from keras.applications.nasnet import NASNetLarge
+        except:
+            from tensorflow.keras.applications.nasnet import NASNetLarge
         model = NASNetLarge(input_shape=(331, 331, 3), include_top=True, weights='imagenet')
     elif type == 'vgg16':
-        from keras.applications.vgg16 import VGG16
+        try:
+            from keras.applications.vgg16 import VGG16
+        except:
+            from tensorflow.keras.applications.vgg16 import VGG16
         model = VGG16(input_shape=(224, 224, 3), include_top=False, pooling='avg', weights='imagenet')
     elif type == 'vgg19':
-        from keras.applications.vgg19 import VGG19
+        try:
+            from keras.applications.vgg19 import VGG19
+        except:
+            from tensorflow.keras.applications.vgg19 import VGG19
         model = VGG19(input_shape=(224, 224, 3), include_top=False, pooling='avg', weights='imagenet')
     elif type == 'multi_io':
         model = get_custom_multi_io_model()
@@ -275,9 +315,6 @@ def get_tst_neural_net(type):
 
 
 if __name__ == '__main__':
-    import keras.backend as K
-    from keras.utils import custom_object_scope
-
     models_to_test = ['mobilenet_small', 'mobilenet', 'mobilenet_v2', 'resnet50', 'inception_v3',
                       'inception_resnet_v2', 'xception', 'densenet121', 'densenet169', 'densenet201',
                        'nasnetmobile', 'nasnetlarge', 'multi_io', 'multi_model_layer_1', 'multi_model_layer_2',

@@ -24,8 +24,11 @@ __version__ = '1.0.2'
 
 
 def get_keras_sub_version():
-    from keras import __version__
-    type = int(__version__.split('.')[1])
+    try:
+        from keras import __version__
+        type = int(__version__.split('.')[1])
+    except:
+        type = 2
     return type
 
 
@@ -44,7 +47,10 @@ def get_input_layers_ids(model, layer, verbose=False):
         else:
             network_nodes = model._network_nodes
         if node_key in network_nodes:
-            for inbound_layer in node.inbound_layers:
+            node_inbound_layers = node.inbound_layers
+            if type(node_inbound_layers) is not list:
+                node_inbound_layers = [node_inbound_layers]
+            for inbound_layer in node_inbound_layers:
                 inbound_layer_id = str(id(inbound_layer))
                 inbound_layers.append(res[inbound_layer_id])
     return inbound_layers
@@ -74,8 +80,12 @@ def get_output_layers_ids(model, layer, verbose=False):
 
 
 def get_copy_of_layer(layer, verbose=False):
-    from keras.layers.core import Activation
-    from keras import layers
+    try:
+        from keras.layers import Activation
+        from keras import layers
+    except:
+        from tensorflow.keras.layers import Activation
+        from tensorflow.keras import layers
     config = layer.get_config()
 
     # Non-standard relu6 layer (from MobileNet)
@@ -137,7 +147,10 @@ def get_copy_of_layer(layer, verbose=False):
         return layer_copy
 
     layer_copy = layers.deserialize({'class_name': layer.__class__.__name__, 'config': config})
-    layer_copy.name = layer.name
+    try:
+        layer_copy.name = layer.name
+    except:
+        layer_copy._name = layer._name
     return layer_copy
 
 
@@ -150,8 +163,12 @@ def get_layers_without_output(model, verbose=False):
 
 
 def optimize_conv_batchnorm_block(m, initial_model, input_layers, conv, bn, verbose=False):
-    from keras import layers
-    from keras.models import Model
+    try:
+        from keras import layers
+        from keras.models import Model
+    except:
+        from tensorflow.keras import layers
+        from tensorflow.keras.models import Model
 
     conv_layer_type = conv.__class__.__name__
     conv_config = conv.get_config()
@@ -164,7 +181,10 @@ def optimize_conv_batchnorm_block(m, initial_model, input_layers, conv, bn, verb
     # Copy Conv layer
     layer_copy = layers.deserialize({'class_name': conv.__class__.__name__, 'config': conv_config})
     # We use batch norm name here to find it later
-    layer_copy.name = bn.name
+    try:
+        layer_copy.name = bn.name
+    except:
+        layer_copy._name = bn._name
 
     # Create new model to initialize layer. We need to store other output tensors as well
     output_tensor, output_names = get_layers_without_output(m, verbose)
@@ -222,8 +242,12 @@ def optimize_conv_batchnorm_block(m, initial_model, input_layers, conv, bn, verb
 
 
 def optimize_separableconv2d_batchnorm_block(m, initial_model, input_layers, conv, bn, verbose=False):
-    from keras import layers
-    from keras.models import Model
+    try:
+        from keras import layers
+        from keras.models import Model
+    except:
+        from tensorflow.keras import layers
+        from tensorflow.keras.models import Model
 
     conv_config = conv.get_config()
     conv_config['use_bias'] = True
@@ -234,7 +258,10 @@ def optimize_separableconv2d_batchnorm_block(m, initial_model, input_layers, con
 
     layer_copy = layers.deserialize({'class_name': conv.__class__.__name__, 'config': conv_config})
     # We use batch norm name here to find it later
-    layer_copy.name = bn.name
+    try:
+        layer_copy.name = bn.name
+    except:
+        layer_copy._name = bn._name
 
     # Create new model to initialize layer. We need to store other output tensors as well
     output_tensor, output_names = get_layers_without_output(m, verbose)
@@ -281,8 +308,12 @@ def optimize_separableconv2d_batchnorm_block(m, initial_model, input_layers, con
 
 
 def reduce_keras_model(model, verbose=False):
-    from keras.models import Model
-    from keras.models import clone_model
+    try:
+        from keras.models import Model
+        from keras.models import clone_model
+    except:
+        from tensorflow.keras.models import Model
+        from tensorflow.keras.models import clone_model
 
     x = []
     input = []
@@ -375,14 +406,26 @@ def reduce_keras_model(model, verbose=False):
                     output_tensor.remove(prev_layer)
                 output_tensor.append(x)
         else:
+            # print('!!!!!!!', prev_layer)
             x = new_layer(prev_layer)
             if type(prev_layer) is list:
                 for f in prev_layer:
-                    if f in output_tensor:
-                        output_tensor.remove(f)
+                    remove_positions = []
+                    for j in range(len(output_tensor)):
+                        if f.name == output_tensor[j].name:
+                            remove_positions.append(j)
+                    # Remove in reverse order
+                    for j in remove_positions[::-1]:
+                        output_tensor.pop(j)
             else:
-                if prev_layer in output_tensor:
-                    output_tensor.remove(prev_layer)
+                remove_positions = []
+                for j in range(len(output_tensor)):
+                    if prev_layer.name == output_tensor[j].name:
+                        remove_positions.append(j)
+                # Remove in reverse order
+                for j in remove_positions[::-1]:
+                    output_tensor.pop(j)
+
             if type(x) is list:
                 output_tensor += x
             else:
